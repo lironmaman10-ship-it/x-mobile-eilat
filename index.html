@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>X-MOBILE | אילת - סמארטפונים ומעבדה | פטור ממע"מ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { gold: '#FFB81C', 'gold-dark': '#E5A716', black: '#000000', 'gray-light': '#F9F9F9' },
+                    fontFamily: { sans: ['Heebo', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Heebo', sans-serif; background-color: #FFFFFF; color: #000; -webkit-tap-highlight-color: transparent; }
+        .drawer-right { position: fixed; top: 0; right: 0; height: 100%; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 50; }
+        .drawer-right.open { transform: translateX(0); }
+        .drawer-left { position: fixed; top: 0; left: 0; height: 100%; transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 50; }
+        .drawer-left.open { transform: translateX(0); }
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); opacity: 0; pointer-events: none; transition: opacity 0.3s ease; z-index: 40; }
+        .overlay.open { opacity: 1; pointer-events: auto; }
+        .hero-3d-container { perspective: 1000px; }
+        .hero-3d-img { filter: drop-shadow(0 25px 40px rgba(0,0,0,0.6)); transform: rotateY(-15deg) rotateX(5deg); transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); animation: float 6s ease-in-out infinite; }
+        .hero-3d-img:hover { transform: rotateY(0deg) rotateX(0deg) scale(1.05); }
+        @keyframes float { 0%, 100% { transform: rotateY(-15deg) rotateX(5deg) translateY(0); } 50% { transform: rotateY(-15deg) rotateX(5deg) translateY(-15px); } }
+        .product-img-container { width: 100%; aspect-ratio: 1/1; background-color: #FFFFFF; overflow: hidden; position: relative; }
+        .product-img { width: 100%; height: 100%; object-fit: cover; object-position: center; transition: transform 0.4s ease; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.1)); }
+        .group:hover .product-img { transform: scale(1.08); }
+        .main-product-img-container { width: 100%; aspect-ratio: 1/1; background-color: #FFFFFF; overflow: hidden; position: relative; display: flex; align-items: center; justify-content: center; border-radius: 1rem; border: 1px solid #f3f4f6; }
+        .main-product-img { width: 100%; height: 100%; object-fit: cover; object-position: center; filter: drop-shadow(0 15px 25px rgba(0,0,0,0.15)); transition: opacity 0.3s; }
+        .gallery-nav-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.9); border-radius: 50%; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: background 0.2s; font-size: 1.2rem; }
+        .gallery-nav-btn:hover { background: #FFF; }
+        .gallery-nav-prev { right: 10px; } .gallery-nav-next { left: 10px; }
+        .thumb-img { width: 85px; height: 85px; object-fit: cover; object-position: center; background: #FFFFFF; border: 1px solid #eee; cursor: pointer; transition: border-color 0.2s; border-radius: 8px; padding: 0; flex-shrink: 0; }
+        .thumb-img.active { border-color: #000; box-shadow: 0 0 0 2px #FFB81C; }
+        .color-swatch { width: 40px; height: 40px; border-radius: 50%; cursor: pointer; border: 2px solid #fff; box-shadow: 0 0 0 1px #ccc; transition: all 0.2s; position: relative; }
+        .color-swatch.active { box-shadow: 0 0 0 2px #000; transform: scale(1.1); }
+        .color-swatch.active::after { content: '\f00c'; font-family: 'Font Awesome 6 Free'; font-weight: 900; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.5); position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 16px; }
+        .no-scrollbar::-webkit-scrollbar { display: none; } .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        html { scroll-behavior: smooth; }
+    </style>
+</head>
+<body class="pb-20 md:pb-0">
+    <header class="sticky top-0 bg-white z-30 border-b border-gray-100 shadow-sm">
+        <div class="container mx-auto px-4 py-3 flex items-center justify-between gap-4">
+            <button onclick="toggleMobileMenu()" class="md:hidden text-2xl z-10 cursor-pointer"><i class="fas fa-bars"></i></button>
+            <a href="javascript:void(0)" onclick="showView('home-view')" class="text-3xl md:text-4xl font-black text-gold tracking-tighter cursor-pointer">X-MOBILE</a>
+            <nav class="hidden md:flex items-center gap-8 font-bold text-sm uppercase tracking-wider">
+                <a href="javascript:void(0)" onclick="showView('home-view')" class="cursor-pointer hover:text-gold transition-colors border-b-2 border-transparent hover:border-gold pb-1">ראשי</a>
+                <a href="javascript:void(0)" onclick="showView('shop-view')" class="cursor-pointer hover:text-gold transition-colors border-b-2 border-transparent hover:border-gold pb-1">חנות</a>
+                <a href="javascript:void(0)" onclick="showView('lab-view')" class="cursor-pointer hover:text-gold transition-colors border-b-2 border-transparent hover:border-gold pb-1">מעבדה</a>
+                <a href="javascript:void(0)" onclick="showView('about-view')" class="cursor-pointer hover:text-gold transition-colors border-b-2 border-transparent hover:border-gold pb-1">אודות</a>
+            </nav>
+            <div class="flex items-center gap-4 md:gap-6 text-xl">
+                <button onclick="openCart()" class="hover:text-gold relative z-10 cursor-pointer">
+                    <i class="fas fa-shopping-bag"></i>
+                    <span id="cart-count" class="absolute -top-2 -left-2 bg-gold text-black text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold">0</span>
+                </button>
+            </div>
+        </div>
+    </header>
+    <div id="mobile-menu-overlay" class="overlay" onclick="toggleMobileMenu()"></div>
+    <div id="mobile-menu" class="drawer-right bg-white w-4/5 max-w-sm flex flex-col p-6">
+        <div class="flex justify-between items-center mb-12">
+            <h2 class="text-2xl font-black text-gold">תפריט</h2>
+            <button onclick="toggleMobileMenu()" class="text-2xl hover:text-gold cursor-pointer"><i class="fas fa-times"></i></button>
+        </div>
+        <nav class="flex flex-col gap-6 text-lg font-bold border-b pb-6 mb-6">
+            <a href="javascript:void(0)" onclick="showView('home-view')" class="flex items-center gap-4 hover:text-gold cursor-pointer"><i class="fas fa-home w-6"></i> ראשי</a>
+            <a href="javascript:void(0)" onclick="showView('shop-view')" class="flex items-center gap-4 hover:text-gold cursor-pointer"><i class="fas fa-store w-6"></i> חנות</a>
+            <a href="javascript:void(0)" onclick="showView('lab-view')" class="flex items-center gap-4 hover:text-gold cursor-pointer"><i class="fas fa-tools w-6"></i> מעבדה</a>
+            <a href="javascript:void(0)" onclick="showView('about-view')" class="flex items-center gap-4 hover:text-gold cursor-pointer"><i class="fas fa-info-circle w-6"></i> אודות</a>
+        </nav>
+        <div class="space-y-4 text-sm text-gray-600">
+            <p class="flex items-center gap-2"><i class="fas fa-phone text-gold"></i> 08-626-2627</p>
+            <p class="flex items-center gap-2"><i class="fas fa-map-marker-alt text-gold"></i> שדרות התמרים 42, אילת</p>
+            <a href="https://wa.me/972502424066" target="_blank" class="flex items-center gap-2 hover:text-gold cursor-pointer"><i class="fab fa-whatsapp text-gold"></i> 050-242-4066</a>
+            <a href="https://instagram.com/xmobile_eilat" target="_blank" class="flex items-center gap-2 hover:text-gold cursor-pointer"><i class="fab fa-instagram text-gold"></i> xmobile_eilat</a>
+        </div>
+    </div>
+    <main>
+        <div id="home-view">
+            <section class="bg-black text-white py-16 md:py-24 overflow-hidden relative">
+                <div class="container mx-auto px-4 grid md:grid-cols-2 items-center gap-8 relative z-10">
+                    <div class="text-center md:text-right order-2 md:order-1">
+                        <span class="inline-block bg-gold text-black text-xs font-bold px-3 py-1 rounded-full mb-4 uppercase tracking-wider">פטור ממע"מ באילת</span>
+                        <h1 class="text-4xl md:text-6xl font-black mb-4 tracking-tight leading-none">X-MOBILE<br>אילת</h1>
+                        <p class="text-lg md:text-xl mb-8 text-gray-400 leading-relaxed">הדגמים החדשים ביותר של אפל וסמסונג. מחירון מותאם לאילת - ללא מע"מ. חיסכון של אלפי שקלים.</p>
+                        <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+                            <button onclick="showView('shop-view')" class="bg-gold text-black font-bold py-3 px-8 rounded-full text-lg hover:bg-white transition-colors shadow-lg cursor-pointer">לחנות המוצרים <i class="fas fa-arrow-left mr-2"></i></button>
+                            <button onclick="showView('lab-view')" class="border border-gray-500 text-white font-bold py-3 px-8 rounded-full text-lg hover:bg-white hover:text-black transition-colors cursor-pointer">קביעת תור למעבדה</button>
+                        </div>
+                    </div>
+                    <div class="hero-3d-container hidden md:flex justify-center order-1 md:order-2">
+                        <img src="https://images.unsplash.com/photo-1695048133142-1a20484d2569?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="iPhone 3D" class="hero-3d-img w-2/3 object-contain">
+                    </div>
+                </div>
+            </section>
+            <section class="py-16 container mx-auto px-4">
+                <h2 class="text-3xl font-black text-center mb-2">השירותים שלנו</h2>
+                <p class="text-center text-gray-500 mb-12">חווית קנייה ושירות מקצועיים בלב אילת</p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div onclick="showView('shop-view')" class="bg-white border border-gray-100 p-8 text-center cursor-pointer hover:shadow-xl hover:border-gold transition-all group rounded-2xl">
+                        <div class="w-20 h-20 bg-gray-light rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-gold transition-colors"><i class="fas fa-mobile-screen text-3xl text-black"></i></div>
+                        <h3 class="font-bold text-xl mb-3">מכשירים חדשים</h3>
+                        <p class="text-gray-500 text-sm leading-relaxed">סדרות אייפון 17 וסמסונג S26. המחיר הזול ביותר בארץ בזכות פטור ממע"מ. איסוף עצמי מהסניף.</p>
+                    </div>
+                    <div onclick="showView('lab-view')" class="bg-white border border-gray-100 p-8 text-center cursor-pointer hover:shadow-xl hover:border-gold transition-all group rounded-2xl">
+                        <div class="w-20 h-20 bg-gray-light rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-gold transition-colors"><i class="fas fa-screwdriver-wrench text-3xl text-black"></i></div>
+                        <h3 class="font-bold text-xl mb-3">מעבדת סלולר</h3>
+                        <p class="text-gray-500 text-sm leading-relaxed">תיקון מקצופי של מסכים, סוללות ותקלות. צוות המומחים שלנו לשירותך עם תור אונליין.</p>
+                    </div>
+                    <div onclick="showView('shop-view')" class="bg-white border border-gray-100 p-8 text-center cursor-pointer hover:shadow-xl hover:border-gold transition-all group rounded-2xl">
+                        <div class="w-20 h-20 bg-gray-light rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-gold transition-colors"><i class="fas fa-headphones text-3xl text-black"></i></div>
+                        <h3 class="font-bold text-xl mb-3">אביזרים מקוריים</h3>
+                        <p class="text-gray-500 text-sm leading-relaxed">מגוון אביזרים, אוזניות, מטענים ועוד. כל מה שנחון למכשיר שלך במחירים הוגנים.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+        <div id="shop-view" class="hidden">
+            <section class="bg-black text-white py-10 border-b border-gray-800">
+                <div class="container mx-auto px-4 text-center">
+                    <h1 class="text-4xl md:text-5xl font-black mb-2 tracking-tight">החנות שלנו</h1>
+                    <p class="text-gray-300 text-lg">כל המחירים מעודכנים לפטור ממע"מ באילת | איסוף עצמי בלבד</p>
+                </div>
+            </section>
+            <section class="border-b shadow-sm bg-white sticky top-[60px] z-20">
+                <div class="container mx-auto px-4 py-4 flex gap-8 overflow-x-auto no-scrollbar text-base md:text-lg font-bold">
+                    <button onclick="filterProducts('all', this)" class="whitespace-nowrap text-gold border-b-2 border-gold pb-2 cursor-pointer">הכל</button>
+                    <button onclick="filterProducts('Apple', this)" class="whitespace-nowrap text-gray-500 hover:text-black cursor-pointer pb-2">Apple</button>
+                    <button onclick="filterProducts('Samsung', this)" class="whitespace-nowrap text-gray-500 hover:text-black cursor-pointer pb-2">Samsung</button>
+                    <button onclick="filterProducts('Accessories', this)" class="whitespace-nowrap text-gray-500 hover:text-black cursor-pointer pb-2">אביזרים</button>
+                    <button onclick="filterProducts('ScreenProtectors', this)" class="whitespace-nowrap text-gray-500 hover:text-black cursor-pointer pb-2">מגני מסך</button>
+                    <button onclick="filterProducts('BackCovers', this)" class="whitespace-nowrap text-gray-500 hover:text-black cursor-pointer pb-2">כיסוי אחורי</button>
+                </div>
+            </section>
+            <section class="py-12">
+                <div class="container mx-auto px-4">
+                    <div class="flex justify-between items-center mb-6">
+                        <span class="text-gray-500 text-sm" id="product-count">מציג מוצרים...</span>
+                        <select id="sort-select" onchange="sortProducts(this.value)" class="border border-gray-200 rounded-lg p-2 text-sm focus:outline-none focus:border-gold bg-white">
+                            <option value="popularity">מיון: פופולריות</option>
+                            <option value="price_low_high">מחיר: מהנמוך לגבוה</option>
+                            <option value="price_high_low">מחיר: מהגבוה לנמוך</option>
+                        </select>
+                    </div>
+                    <div id="product-grid" class="grid grid-cols-2 md:grid-cols-3 gap-6"></div>
+                </div>
+            </section>
+        </div>
+        <div id="product-view" class="hidden container mx-auto px-4 py-10">
+            <button onclick="showView('shop-view')" class="mb-8 text-gray-500 hover:text-black font-bold flex items-center gap-2 text-sm transition-colors cursor-pointer"><i class="fas fa-arrow-right"></i> חזרה לחנות</button>
+            <div id="product-detail-container" class="grid grid-cols-1 lg:grid-cols-2 gap-12"></div>
+        </div>
+        <div id="lab-view" class="hidden container mx-auto px-4 py-12">
+            <div class="max-w-2xl mx-auto bg-white p-6 md:p-10 border border-gray-100 rounded-2xl shadow-sm">
+                <div class="text-center mb-8">
+                    <div class="w-20 h-20 bg-gold rounded-full flex items-center justify-center mx-auto mb-4"><i class="fas fa-tools text-3xl text-black"></i></div>
+                    <h1 class="text-3xl font-black mb-2">מעבדת סלולר מקצועית</h1>
+                    <p class="text-gray-500">צוות X-MOBILE | שדרות התמרים 42, אילת</p>
+                </div>
+                <form class="space-y-4" onsubmit="event.preventDefault(); bookAppointment();">
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <input id="lab-name" type="text" placeholder="שם מלא" class="w-full border border-gray-200 rounded-lg p-3 focus:outline-none focus:border-gold" required>
+                        <input id="lab-phone" type="tel" placeholder="טלפון" class="w-full border border-gray-200 rounded-lg p-3 focus:outline-none focus:border-gold" required>
+                    </div>
+                    <textarea id="lab-issue" placeholder="סוג מכשיר ותיאור התקלה" class="w-full border border-gray-200 rounded-lg p-3 focus:outline-none focus:border-gold" rows="4" required></textarea>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <input id="lab-date" type="date" class="w-full border border-gray-200 rounded-lg p-3 focus:outline-none focus:border-gold" required>
+                        <select id="lab-time" class="w-full border border-gray-200 rounded-lg p-3 focus:outline-none focus:border-gold bg-white" required>
+                            <option>11:00 - 11:30</option><option>11:30 - 12:00</option><option>12:00 - 12:30</option><option>12:30 - 13:00</option>
+                            <option>13:00 - 13:30</option><option>13:30 - 14:00</option><option>14:00 - 14:30</option><option>14:30 - 15:00</option>
+                            <option>15:00 - 15:30</option><option>15:30 - 16:00</option><option>16:00 - 16:30</option><option>16:30 - 17:00</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="w-full bg-black text-white py-4 rounded-lg font-bold text-lg hover:bg-gold transition-colors mt-4 cursor-pointer">קביעת תור</button>
+                </form>
+            </div>
+        </div>
+        <div id="about-view" class="hidden container mx-auto px-4 py-12">
+            <div class="max-w-5xl mx-auto">
+                <h1 class="text-4xl md:text-5xl font-black mb-8 text-center tracking-tight">אודות <span class="text-gold">X-MOBILE</span></h1>
+                <div class="bg-white p-8 md:p-12 rounded-2xl shadow-sm border border-gray-100 mb-10 text-center">
+                    <p class="text-gray-700 leading-loose text-lg mb-6">X-MOBILE הינה חנות סלולר ומעבדה מובילה באילת. אנו מתמחים במכירת סמארטפונים מהדגמים החדשים ביותר של אפל, סמסונג ועוד, תוך ניצול מלא של חוקי המס באילת על מנת להעניק ללקוחותינו את <strong class="text-black">המחירים הזולים ביותר בישראל - ללא מע"מ.</strong></p>
+                </div>
+            </div>
+        </div>
+        <div id="checkout-view" class="hidden container mx-auto px-4 py-10">
+            <h1 class="text-3xl font-black mb-8">סיום הזמנה ואיסוף עצמי</h1>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2 space-y-6">
+                    <div class="bg-white p-6 border border-gray-100 rounded-xl">
+                        <h2 class="font-bold text-xl mb-4 flex items-center gap-2"><span class="bg-black text-white w-6 h-6 rounded-full flex items-center justify-center text-sm">1</span> פרטים אישיים</h2>
+                        <div class="grid grid-cols-2 gap-4">
+                            <input id="co-name" type="text" placeholder="שם מלא" class="border border-gray-200 rounded-lg p-3 focus:outline-none focus:border-gold col-span-2">
+                            <input id="co-phone" type="tel" placeholder="טלפון" class="border border-gray-200 rounded-lg p-3 focus:outline-none focus:border-gold">
+                            <input id="co-email" type="email" placeholder="אימייל" class="border border-gray-200 rounded-lg p-3 focus:outline-none focus:border-gold">
+                            <input id="co-id" type="text" placeholder="תעודת זהות (לאישור פטור ממע&quot;מ)" class="border border-gray-200 rounded-lg p-3 focus:outline-none focus:border-gold col-span-2">
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 border border-gray-100 rounded-xl">
+                        <h2 class="font-bold text-xl mb-4 flex items-center gap-2"><span class="bg-black text-white w-6 h-6 rounded-full flex items-center justify-center text-sm">2</span> פרטי איסוף</h2>
+                        <div class="bg-gold bg-opacity-10 p-4 rounded-lg mb-4 text-center font-bold text-sm border border-gold"><i class="fas fa-store text-gold"></i> שדרות התמרים 42, אילת (איסוף עצמי בלבד)</div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <input id="co-date" type="date" class="border border-gray-200 rounded-lg p-3 focus:outline-none focus:border-gold">
+                            <select id="co-time" class="border border-gray-200 rounded-lg p-3 focus:outline-none focus:border-gold bg-white">
+                                <option>10:00 - 12:00</option><option>12:00 - 14:00</option><option>16:00 - 18:00</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button onclick="completeOrder()" class="w-full bg-gold text-black py-4 rounded-xl font-black text-lg hover:bg-black hover:text-white transition-colors shadow-lg cursor-pointer">אישור הזמנה</button>
+                </div>
+                <div class="bg-gray-light p-6 rounded-xl h-fit shadow-sm">
+                    <h2 class="font-bold text-xl mb-4 pb-2 border-b">סיכום הזמנה</h2>
+                    <div id="checkout-items" class="space-y-4 mb-4"></div>
+                    <div class="border-t pt-4">
+                        <div class="flex justify-between text-lg pt-2 border-t mt-2"><span>סה&quot;כ לתשלום בסניף:</span><span id="checkout-total" class="font-black">0 ₪</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="confirmation-view" class="hidden container mx-auto px-4 py-12 text-center">
+            <div class="max-w-md mx-auto bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
+                <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i class="fas fa-check text-4xl text-green-600"></i>
+                </div>
+                <h1 class="text-3xl font-black mb-2">הפעולה בוצעה בהצלחה!</h1>
+                <p class="text-gray-500 mb-6">הנתונים נשמרו במערכת ונקלטו במערכת הניהול שלנו.</p>
+                <div id="confirmation-details" class="bg-gray-50 p-4 rounded-lg mb-6 text-right space-y-2"></div>
+                <a id="whatsapp-btn" href="#" target="_blank" class="w-full bg-green-500 text-white py-4 rounded-lg font-bold text-lg hover:bg-green-600 transition-colors mb-4 flex items-center justify-center gap-2 cursor-pointer">
+                    <i class="fab fa-whatsapp text-2xl"></i> שלח אישור בוואטסאפ
+                </a>
+                <button onclick="showView('home-view')" class="w-full text-gray-500 hover:text-black font-bold">חזרה לעמוד הראשי</button>
+            </div>
+        </div>
+    </main>
+    <div id="cart-overlay" class="overlay" onclick="closeCart()"></div>
+    <div id="cart-drawer" class="drawer-left bg-white w-full md:w-1/3 flex flex-col">
+        <div class="p-4 border-b flex justify-between items-center bg-black text-white">
+            <h2 class="text-xl font-bold flex items-center gap-2"><i class="fas fa-shopping-bag text-gold"></i> עגלת קניות</h2>
+            <button onclick="closeCart()" class="text-2xl hover:text-gold cursor-pointer"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="cart-items" class="flex-1 p-4 overflow-y-auto space-y-4"></div>
+        <div class="p-4 border-t bg-gray-light">
+            <div class="flex justify-between mb-4 text-lg"><span>סה&quot;כ (ללא מע&quot;מ):</span><span id="cart-total" class="font-black">0 ₪</span></div>
+            <button onclick="showView('checkout-view')" class="w-full bg-gold text-black py-3 rounded-lg font-bold text-lg hover:bg-black hover:text-white transition-colors cursor-pointer">מעבר לתשלום</button>
+        </div>
+    </div>
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t md:hidden z-30 flex justify-around py-2 shadow-2xl">
+        <button onclick="showView('home-view')" class="flex flex-col items-center text-xs font-bold w-1/4 py-1 cursor-pointer"><i class="fas fa-home text-xl mb-1"></i> ראשי</button>
+        <button onclick="showView('shop-view')" class="flex flex-col items-center text-xs font-bold w-1/4 py-1 cursor-pointer"><i class="fas fa-store text-xl mb-1"></i> חנות</button>
+        <button onclick="showView('lab-view')" class="flex flex-col items-center text-xs font-bold w-1/4 py-1 cursor-pointer"><i class="fas fa-tools text-xl mb-1"></i> מעבדה</button>
+        <button onclick="openCart()" class="flex flex-col items-center text-xs font-bold w-1/4 py-1 relative cursor-pointer"><i class="fas fa-shopping-bag text-xl mb-1"></i> סל<span id="cart-count-mobile" class="absolute top-0 right-4 bg-gold text-black text-[10px] w-4 h-4 rounded-full flex items-center justify-center">0</span></button>
+    </nav>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        let products = []; let cart = []; let currentProduct = null; let currentFilter = 'all'; let currentSort = 'popularity';
+
+        document.addEventListener('DOMContentLoaded', async () => { 
+            await fetchProducts(); 
+            updateCart(); 
+            setInterval(fetchProducts, 5000); 
+        });
+
+        async function fetchProducts() {
+            try {
+                const res = await fetch(`${API_URL}/products?t=${Date.now()}`);
+                const data = await res.json();
+                if (JSON.stringify(data) !== JSON.stringify(products)) {
+                    products = data;
+                    if (!document.getElementById('shop-view').classList.contains('hidden')) renderShop();
+                    if (currentProduct) {
+                        const updated = products.find(p => p._id === currentProduct._id);
+                        if (updated) {
+                            let sName = currentProduct.selectedColor.name;
+                            let sGb = currentProduct.selectedStorage.gb;
+                            let gIdx = currentProduct.currentGalleryIdx;
+                            currentProduct = updated;
+                            currentProduct.selectedColor = updated.colors.find(c => c.name === sName) || updated.colors[0];
+                            currentProduct.selectedStorage = updated.storage.find(s => s.gb === sGb) || updated.storage[0];
+                            currentProduct.galleryImages = [];
+                            const isAccessory = currentProduct.category === 'ScreenProtectors' || currentProduct.category === 'BackCovers';
+                            if (isAccessory) {
+                                currentProduct.galleryImages.push({ url: currentProduct.colors[0].images[0], colorIndex: 0 });
+                            } else {
+                                currentProduct.colors.forEach((color, c_idx) => { color.images.forEach(img => { currentProduct.galleryImages.push({ url: img, colorIndex: c_idx }); }); });
+                            }
+                            currentProduct.currentGalleryIdx = (gIdx < currentProduct.galleryImages.length) ? gIdx : 0;
+                            renderProductDetail();
+                        }
+                    }
+                }
+            } catch (error) {}
+        }
+
+        function showView(viewId) {
+            document.querySelectorAll('main > div').forEach(div => div.classList.add('hidden'));
+            document.getElementById(viewId).classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            const menu = document.getElementById('mobile-menu'); const menuOverlay = document.getElementById('mobile-menu-overlay');
+            if (menu.classList.contains('open')) { menu.classList.remove('open'); menuOverlay.classList.remove('open'); }
+            const cartDrawer = document.getElementById('cart-drawer'); const cartOverlay = document.getElementById('cart-overlay');
+            if (cartDrawer.classList.contains('open')) { cartDrawer.classList.remove('open'); cartOverlay.classList.remove('open'); document.body.style.overflow = ''; }
+        }
+
+        function toggleMobileMenu() { document.getElementById('mobile-menu').classList.toggle('open'); document.getElementById('mobile-menu-overlay').classList.toggle('open'); }
+        function openCart() { document.getElementById('cart-drawer').classList.add('open'); document.getElementById('cart-overlay').classList.add('open'); document.body.style.overflow = 'hidden'; }
+        function closeCart() { document.getElementById('cart-drawer').classList.remove('open'); document.getElementById('cart-overlay').classList.remove('open'); document.body.style.overflow = ''; }
+
+        function filterProducts(filter, btn) {
+            currentFilter = filter; renderShop();
+            document.querySelectorAll('.no-scrollbar button').forEach(b => { b.classList.remove('text-gold', 'border-gold'); b.classList.add('text-gray-500'); });
+            if (btn) { btn.classList.add('text-gold', 'border-gold'); btn.classList.remove('text-gray-500'); }
+        }
+        function sortProducts(sortValue) { currentSort = sortValue; renderShop(); }
+
+        function renderShop() {
+            const grid = document.getElementById('product-grid');
+            let filtered = [];
+            if (currentFilter === 'all') filtered = [...products];
+            else if (currentFilter === 'Apple' || currentFilter === 'Samsung') filtered = products.filter(p => p.brand === currentFilter);
+            else filtered = products.filter(p => p.category === currentFilter);
+
+            if (currentSort === 'price_low_high') filtered.sort((a, b) => a.basePrice - b.basePrice);
+            else if (currentSort === 'price_high_low') filtered.sort((a, b) => b.basePrice - a.basePrice);
+            else filtered.sort((a, b) => b.rating - a.rating);
+            
+            document.getElementById('product-count').innerText = `מציג ${filtered.length} מוצרים`;
+            grid.innerHTML = filtered.map(p => {
+                const inStock = p.variants && p.variants.some(v => v.stock > 0);
+                return `
+                <div class="bg-white border border-gray-100 hover:border-gray-300 hover:shadow-lg transition-all group cursor-pointer rounded-2xl overflow-hidden ${!inStock ? 'opacity-60 pointer-events-none' : ''}" onclick="${inStock ? `openProduct('${p._id}')` : ''}">
+                    <div class="product-img-container border-b border-gray-50 relative">
+                        <img src="${p.colors[0].images[0]}" alt="${p.name}" class="product-img ${!inStock ? 'grayscale' : ''}">
+                        <span class="absolute top-2 right-2 ${inStock ? 'bg-green-600' : 'bg-red-600'} text-white text-xs font-bold px-2 py-1 rounded-md z-10">${inStock ? 'במלאי' : 'אזל במלאי'}</span>
+                    </div>
+                    <div class="p-5">
+                        <span class="text-sm text-gray-400 uppercase font-bold tracking-wider">${p.brand}</span>
+                        <h3 class="font-bold text-xl mb-2 truncate">${p.name}</h3>
+                        <div class="mb-4"><span class="text-2xl font-black">₪${p.basePrice.toLocaleString()}</span></div>
+                        <button class="w-full border border-black text-black py-3 rounded-lg font-bold transition-colors text-sm ${inStock ? 'hover:bg-black hover:text-white' : 'bg-gray-200 text-gray-400 border-gray-200 cursor-not-allowed'}">${inStock ? 'צפייה במוצר' : 'אזל במלאי'}</button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function openProduct(id) {
+            currentProduct = products.find(p => p._id === id);
+            if (!currentProduct) return;
+            currentProduct.galleryImages = [];
+            const isAccessory = currentProduct.category === 'ScreenProtectors' || currentProduct.category === 'BackCovers';
+            if (isAccessory) {
+                currentProduct.galleryImages.push({ url: currentProduct.colors[0].images[0], colorIndex: 0 });
+            } else {
+                currentProduct.colors.forEach((color, c_idx) => { color.images.forEach(img => { currentProduct.galleryImages.push({ url: img, colorIndex: c_idx }); }); });
+            }
+            currentProduct.currentGalleryIdx = 0; 
+            currentProduct.selectedStorage = currentProduct.storage[0]; 
+            currentProduct.selectedColor = currentProduct.colors[0]; 
+            currentProduct.qty = 1;
+            renderProductDetail(); showView('product-view');
+        }
+
+        function checkStock() {
+            if(!currentProduct || !currentProduct.variants) return false;
+            const sGb = currentProduct.selectedStorage.gb;
+            const cName = currentProduct.selectedColor.name;
+            if(cName === "מגוון צבעים") return false;
+            const v = currentProduct.variants.find(v => v.storageGb === sGb && v.colorName === cName);
+            return v && v.stock > 0;
+        }
+
+        function renderProductDetail() {
+            const container = document.getElementById('product-detail-container');
+            const showStorage = !(currentProduct.storage.length === 1 && currentProduct.storage[0].gb === "Standard");
+            const isVariety = currentProduct.selectedColor.name === "מגוון צבעים";
+            const inStock = !isVariety && checkStock();
+            const isAccessory = currentProduct.category === 'ScreenProtectors' || currentProduct.category === 'BackCovers';
+            const optionsLabel = isAccessory ? "דגם מכשיר:" : "צבע:";
+            
+            let stockTagHtml = `<div id="detail-stock-tag" class="mt-2 inline-block ${isVariety ? 'bg-blue-100 text-blue-800' : (inStock ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800')} text-sm font-bold px-3 py-1 rounded-full">${isVariety ? 'בחר דגם/צבע להמשך' : (inStock ? 'במלאי' : 'אזל במלאי')}</div>`;
+            let addBtnHtml = isVariety ? `<button id="add-to-cart-btn" onclick="alert('נא לבחור דגם/צבע')" class="flex-1 bg-gray-200 text-gray-500 py-4 rounded-md font-black text-xl cursor-not-allowed flex items-center justify-center gap-2"><i class="fas fa-shopping-bag"></i> בחר אפשרות</button>` : (inStock ? `<button id="add-to-cart-btn" onclick="addToCart()" class="flex-1 bg-gold text-black py-4 rounded-md font-black text-xl hover:bg-black hover:text-white transition-colors flex items-center justify-center gap-2 cursor-pointer"><i class="fas fa-shopping-bag"></i> הוסף לסל</button>` : `<button id="add-to-cart-btn" disabled class="flex-1 bg-gray-200 text-gray-400 py-4 rounded-md font-black text-xl cursor-not-allowed flex items-center justify-center gap-2">אזל במלאי</button>`);
+
+            container.innerHTML = `
+                <div class="flex flex-col gap-4">
+                    <div class="main-product-img-container relative overflow-hidden">
+                        <img id="main-product-img" src="${currentProduct.galleryImages[0].url}" alt="${currentProduct.name}" class="main-product-img transition-opacity duration-300">
+                        ${currentProduct.galleryImages.length > 1 ? `<div class="gallery-nav-btn gallery-nav-prev" onclick="navigateGallery(-1)"><i class="fas fa-chevron-right"></i></div><div class="gallery-nav-btn gallery-nav-next" onclick="navigateGallery(1)"><i class="fas fa-chevron-left"></i></div>` : ''}
+                        <span class="absolute top-4 right-4 bg-gold text-black text-sm font-bold px-3 py-1 rounded-full z-20">פטור ממע"מ</span>
+                    </div>
+                    ${currentProduct.galleryImages.length > 1 ? `
+                    <div class="flex gap-3 justify-center overflow-x-auto no-scrollbar pb-2">
+                        ${currentProduct.galleryImages.map((g, i) => `<img src="${g.url}" onclick="changeMainImage(${i})" class="thumb-img ${i === 0 ? 'active' : ''}" id="thumb-${i}">`).join('')}
+                    </div>` : ''}
+                </div>
+                <div class="flex flex-col gap-6">
+                    <div>
+                        <span class="text-base text-gray-400 font-bold uppercase tracking-wider">${currentProduct.brand}</span>
+                        <h1 class="text-4xl md:text-5xl font-black mb-2">${currentProduct.name}</h1>
+                        ${stockTagHtml}
+                    </div>
+                    <div class="border-y py-8">
+                        <span id="dynamic-price" class="text-5xl font-black">₪${currentProduct.basePrice.toLocaleString()}</span>
+                    </div>
+                    ${showStorage ? `<div><h3 class="font-bold mb-3">נפח אחסון:</h3><div id="storage-options" class="flex gap-2 flex-wrap">${currentProduct.storage.map((s, i) => `<button onclick="selectStorage(${i})" class="storage-btn border border-gray-300 px-6 py-3 rounded-md font-bold ${i === 0 ? 'bg-black text-white' : ''}" data-index="${i}">${s.gb}</button>`).join('')}</div></div>` : ''}
+                    <div>
+                        <h3 class="font-bold mb-3">${optionsLabel} <span id="color-name" class="font-normal text-gray-500">${currentProduct.selectedColor.name}</span></h3>
+                        <div class="flex gap-2 flex-wrap">
+                            ${currentProduct.colors.map((c, i) => {
+                                if (isAccessory) {
+                                    return `<button data-idx="${i}" onclick="selectColor(${i})" class="model-btn border border-gray-300 px-4 py-2 rounded-md font-bold text-sm transition-colors ${i === 0 ? 'bg-black text-white' : 'bg-white text-black hover:bg-gray-100'}">${c.name}</button>`;
+                                } else {
+                                    return `<div onclick="selectColor(${i})" class="color-swatch ${i === 0 ? 'active' : ''}" style="background: ${c.hex};" id="color-${i}"></div>`;
+                                }
+                            }).join('')}
+                        </div>
+                    </div>
+                    <div class="flex gap-2 mt-4">
+                        <div class="flex items-center border border-gray-300 rounded-md overflow-hidden">
+                            <button onclick="changeQty(-1)" class="px-5 py-4 text-2xl hover:bg-gray-100">-</button>
+                            <input id="qty-input" type="text" value="1" class="w-16 text-center focus:outline-none font-bold text-xl" readonly>
+                            <button onclick="changeQty(1)" class="px-5 py-4 text-2xl hover:bg-gray-100">+</button>
+                        </div>
+                        ${addBtnHtml}
+                    </div>
+                    <div class="mt-4 border-t pt-4">
+                        <div class="flex gap-4 border-b mb-4">
+                            <button onclick="switchTab('specs', this)" class="tab-btn font-bold pb-3 text-lg border-b-2 border-gold text-gold">מפרט</button>
+                            <button onclick="switchTab('reviews', this)" class="tab-btn font-bold pb-3 text-lg border-b-2 border-transparent text-gray-500">ביקורות</button>
+                        </div>
+                        <div id="tab-content" class="text-md text-gray-700 leading-relaxed"></div>
+                    </div>
+                </div>`;
+            switchTab('specs', document.querySelector('.tab-btn'));
+        }
+
+        function navigateGallery(d) { 
+            if (!currentProduct || !currentProduct.galleryImages || currentProduct.galleryImages.length <= 1) return;
+            let i = currentProduct.currentGalleryIdx + d; 
+            if (i >= currentProduct.galleryImages.length) i = 0; 
+            if (i < 0) i = currentProduct.galleryImages.length - 1; 
+            currentProduct.currentGalleryIdx = i; 
+            updateGalleryUI(true); 
+        }
+        function changeMainImage(i) { 
+            if (!currentProduct || !currentProduct.galleryImages || currentProduct.galleryImages.length <= 1) return;
+            currentProduct.currentGalleryIdx = i; 
+            updateGalleryUI(true); 
+        }
+        function updateGalleryUI(updCol = false) { 
+            if (!currentProduct || !currentProduct.galleryImages) return;
+            const g = currentProduct.galleryImages[currentProduct.currentGalleryIdx]; 
+            if (!g) return;
+            const mainImg = document.getElementById('main-product-img');
+            if (mainImg) mainImg.src = g.url; 
+            document.querySelectorAll('.thumb-img').forEach(t => t.classList.remove('active')); 
+            const thumb = document.getElementById(`thumb-${currentProduct.currentGalleryIdx}`);
+            if (thumb) thumb.classList.add('active'); 
+            
+            if (updCol) {
+                const cIdx = g.colorIndex; 
+                if (currentProduct.colors[cIdx] && currentProduct.selectedColor.name !== currentProduct.colors[cIdx].name) { 
+                    selectColor(cIdx, false); 
+                } 
+            } 
+        }
+        function selectStorage(i) { 
+            document.querySelectorAll('.storage-btn').forEach(btn => btn.classList.remove('bg-black', 'text-white')); 
+            const activeStorage = document.querySelector(`.storage-btn[data-index="${i}"]`);
+            if (activeStorage) activeStorage.classList.add('bg-black', 'text-white');
+            currentProduct.selectedStorage = currentProduct.storage[i]; 
+            updateStockUI();
+        }
+        function selectColor(i, updGal = true) {
+            document.querySelectorAll('.color-swatch').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.model-btn').forEach(b => {
+                b.classList.remove('bg-black', 'text-white');
+                b.classList.add('bg-white', 'text-black');
+            });
+            
+            const swatch = document.getElementById(`color-${i}`);
+            if (swatch) swatch.classList.add('active');
+            
+            const activeBtn = document.querySelector(`.model-btn[data-idx="${i}"]`);
+            if (activeBtn) {
+                activeBtn.classList.remove('bg-white', 'text-black');
+                activeBtn.classList.add('bg-black', 'text-white');
+            }
+            
+            currentProduct.selectedColor = currentProduct.colors[i];
+            document.getElementById('color-name').innerText = currentProduct.selectedColor.name;
+            updateStockUI();
+            if(updGal && currentProduct.galleryImages.length > 1) { 
+                const gIdx = currentProduct.galleryImages.findIndex(g => g.colorIndex === i); 
+                if(gIdx !== -1) { 
+                    currentProduct.currentGalleryIdx = gIdx; 
+                    const gImg = currentProduct.galleryImages[gIdx];
+                    const mainImg = document.getElementById('main-product-img');
+                    if (mainImg) mainImg.src = gImg.url;
+                    document.querySelectorAll('.thumb-img').forEach(t => t.classList.remove('active'));
+                    const thumb = document.getElementById(`thumb-${gIdx}`);
+                    if (thumb) thumb.classList.add('active');
+                } 
+            }
+        }
+        function updateStockUI() {
+            const isV = currentProduct.selectedColor.name === "מגוון צבעים";
+            const inS = !isV && checkStock();
+            const t = document.getElementById('detail-stock-tag'); const b = document.getElementById('add-to-cart-btn');
+            if(t) { t.className = `mt-2 inline-block ${isV ? 'bg-blue-100 text-blue-800' : (inS ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800')} text-sm font-bold px-3 py-1 rounded-full`; t.innerText = isV ? 'בחר דגם/צבע' : (inS ? 'במלאי' : 'אזל במלאי'); }
+            if(b) { if(isV) { b.setAttribute('onclick', "alert('בחר אפשרות')"); b.className = 'flex-1 bg-gray-200 text-gray-500 py-4 rounded-md font-black text-xl cursor-not-allowed flex items-center justify-center gap-2'; b.innerHTML = '<i class="fas fa-shopping-bag"></i> בחר אפשרות'; } else if(inS) { b.setAttribute('onclick', 'addToCart()'); b.className = 'flex-1 bg-gold text-black py-4 rounded-md font-black text-xl hover:bg-black hover:text-white transition-colors flex items-center justify-center gap-2 cursor-pointer'; b.innerHTML = '<i class="fas fa-shopping-bag"></i> הוסף לסל'; } else { b.setAttribute('onclick', ''); b.className = 'flex-1 bg-gray-200 text-gray-400 py-4 rounded-md font-black text-xl cursor-not-allowed flex items-center justify-center gap-2'; b.innerHTML = 'אזל במלאי'; } }
+        }
+        function changeQty(c) { const i = document.getElementById('qty-input'); let v = parseInt(i.value) + c; if(v > 0) i.value = v; currentProduct.qty = v; }
+        
+        function switchTab(tab, btn) { 
+            document.querySelectorAll('.tab-btn').forEach(b => { b.classList.remove('border-gold', 'text-gold'); b.classList.add('border-transparent', 'text-gray-500'); }); 
+            btn.classList.add('border-gold', 'text-gold'); btn.classList.remove('border-transparent', 'text-gray-500'); 
+            const c = document.getElementById('tab-content'); 
+            if (tab === 'specs') { let h = '<ul class="space-y-3">'; for (const [k, v] of Object.entries(currentProduct.specs)) { h += `<li class="flex justify-between border-b pb-2"><strong>${k}:</strong> <span>${v}</span></li>`; } h += '</ul>'; c.innerHTML = h; } 
+            else if (tab === 'reviews') { 
+                let revHtml = '<div class="space-y-5 mt-2">'; 
+                if(currentProduct.reviews && currentProduct.reviews.length > 0) {
+                    currentProduct.reviews.forEach(r => {
+                        let starsHtml = '';
+                        for (let i = 1; i <= 5; i++) {
+                            starsHtml += `<i class="fas fa-star ${i <= r.rating ? 'text-gold' : 'text-gray-300'}"></i>`;
+                        }
+                        revHtml += `
+                            <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                                <strong class="block text-lg text-black mb-1">${r.author}</strong>
+                                <p class="text-gray-600 leading-relaxed mb-2 text-sm">${r.text}</p>
+                                <div class="text-base">${starsHtml}</div>
+                            </div>`;
+                    });
+                } else {
+                    revHtml += `<p>אין ביקורות עדיין.</p>`;
+                }
+                revHtml += '</div>';
+                c.innerHTML = revHtml; 
+            } 
+        }
+
+        function addToCart() { 
+            if(currentProduct.selectedColor.name === "מגוון צבעים") return alert('בחר אפשרות');
+            if(!checkStock()) return alert('אזל במלאי');
+            const p = currentProduct.basePrice + currentProduct.selectedStorage.mod; 
+            cart.push({ id: Date.now(), name: `${currentProduct.name} (${currentProduct.selectedStorage.gb}, ${currentProduct.selectedColor.name})`, image: currentProduct.galleryImages[currentProduct.currentGalleryIdx].url, price: p, qty: currentProduct.qty }); 
+            updateCart(); openCart(); 
+        }
+        function removeFromCart(id) { cart = cart.filter(i => i.id !== id); updateCart(); }
+        function updateCart() {
+            const c = cart.reduce((s, i) => s + i.qty, 0); const t = cart.reduce((s, i) => s + (i.price * i.qty), 0);
+            document.getElementById('cart-count').innerText = c; document.getElementById('cart-count-mobile').innerText = c; document.getElementById('cart-total').innerText = `₪${t.toLocaleString()}`;
+            const ct = document.getElementById('checkout-total'); if(ct) ct.innerText = `₪${t.toLocaleString()}`;
+            const ic = document.getElementById('cart-items'); const ci = document.getElementById('checkout-items');
+            if(cart.length === 0) { ic.innerHTML = '<p class="text-center text-gray-500 mt-10">העגלה ריקה</p>'; if(ci) ci.innerHTML = '<p class="text-center text-gray-500">העגלה ריקה</p>'; return; }
+            const h = cart.map(i => `<div class="flex gap-4 border border-gray-100 p-3 rounded-md items-center bg-white"><img src="${i.image}" class="w-16 h-16 object-contain rounded"><div class="flex-1"><h4 class="font-bold text-sm">${i.name}</h4><p class="font-black text-md">₪${(i.price * i.qty).toLocaleString()}</p></div></div>`).join('');
+            ic.innerHTML = h; if(ci) ci.innerHTML = h;
+        }
+        function showConfirmation(d, w) { document.getElementById('confirmation-details').innerHTML = d; document.getElementById('whatsapp-btn').href = `https://wa.me/972502424066?text=${encodeURIComponent(w)}`; showView('confirmation-view'); }
+        async function bookAppointment() { try { const r = await fetch(`${API_URL}/appointments`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ customerName: document.getElementById('lab-name').value, phone: document.getElementById('lab-phone').value, issue: document.getElementById('lab-issue').value, date: document.getElementById('lab-date').value, timeSlot: document.getElementById('lab-time').value }) }); if(r.ok) { const d = await r.json(); showConfirmation(`<p><strong>מספר תור:</strong> ${d.appointmentNumber}</p><p><strong>תאריך:</strong> ${new Date(d.date).toLocaleDateString()}</p>`, `תור למעבדה: ${d.appointmentNumber}`); } } catch (e) {} }
+        async function completeOrder() { const t = cart.reduce((s, i) => s + (i.price * i.qty), 0); try { const r = await fetch(`${API_URL}/orders`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ customerName: document.getElementById('co-name').value, phone: document.getElementById('co-phone').value, items: cart, totalAmount: t, pickupDate: document.getElementById('co-date').value, pickupTime: document.getElementById('co-time').value }) }); if(r.ok) { const d = await r.json(); cart = []; updateCart(); showConfirmation(`<p><strong>מספר הזמנה:</strong> ${d.orderNumber}</p><p><strong>סכום:</strong> ₪${d.totalAmount.toLocaleString()}</p>`, `הזמנה: ${d.orderNumber}`); } } catch (e) {} }
+    </script>
+</body>
+</html>

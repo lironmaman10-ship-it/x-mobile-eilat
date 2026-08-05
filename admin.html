@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X-MOBILE | מערכת ניהול מלאה</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Heebo', sans-serif; background-color: #F3F4F6; }
+        .nav-tab.active { background-color: #000; color: #fff; }
+        input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div id="login-view" class="max-w-md mx-auto bg-white p-8 rounded-2xl shadow-lg mt-20">
+        <h1 class="text-3xl font-black text-center mb-6">כניסה למערכת ניהול</h1>
+        <input id="admin-pass" type="password" placeholder="הזן סיסמה" class="w-full border border-gray-300 rounded-lg p-3 mb-4 text-center text-lg focus:outline-none focus:border-black">
+        <button onclick="login()" class="w-full bg-black text-white py-3 rounded-lg font-bold text-lg hover:bg-gray-800">התחבר</button>
+        <p id="login-error" class="text-red-500 text-center mt-4 hidden">סיסמה שגויה</p>
+    </div>
+
+    <div id="dashboard-view" class="hidden">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-black">לוח בקרה - X-MOBILE</h1>
+            <a href="/" class="text-sm text-gray-500 hover:text-black">חזרה לאתר</a>
+        </div>
+
+        <div class="flex gap-2 mb-6 bg-white p-2 rounded-xl shadow-sm overflow-x-auto">
+            <button onclick="switchTab('orders')" id="tab-orders" class="nav-tab active whitespace-nowrap px-4 py-2 rounded-lg font-bold cursor-pointer transition-colors">הזמנות חנות</button>
+            <button onclick="switchTab('lab')" id="tab-lab" class="nav-tab whitespace-nowrap px-4 py-2 rounded-lg font-bold cursor-pointer transition-colors">תורי מעבדה</button>
+            <button onclick="switchTab('inventory')" id="tab-inventory" class="nav-tab whitespace-nowrap px-4 py-2 rounded-lg font-bold cursor-pointer transition-colors">ניהול מלאי (מוצרים)</button>
+        </div>
+
+        <div id="content-orders" class="bg-white p-6 rounded-2xl shadow-sm overflow-x-auto">
+            <div class="flex justify-between mb-4">
+                <h2 class="text-2xl font-bold flex items-center gap-2"><i class="fas fa-shopping-bag text-gray-500"></i> הזמנות</h2>
+                <button onclick="fetchData('orders')" class="bg-black text-white px-4 py-2 rounded-lg font-bold text-sm cursor-pointer">רענן</button>
+            </div>
+            <table class="w-full text-right border-collapse min-w-[600px]">
+                <thead><tr class="border-b"><th class="p-3">מס' הזמנה</th><th class="p-3">לקוח</th><th class="p-3">טלפון</th><th class="p-3">סכום</th><th class="p-3">סטטוס</th></tr></thead>
+                <tbody id="orders-table-body"></tbody>
+            </table>
+        </div>
+
+        <div id="content-lab" class="hidden bg-white p-6 rounded-2xl shadow-sm overflow-x-auto">
+            <div class="flex justify-between mb-4">
+                <h2 class="text-2xl font-bold flex items-center gap-2"><i class="fas fa-tools text-gray-500"></i> תורי מעבדה</h2>
+                <button onclick="fetchData('appointments')" class="bg-black text-white px-4 py-2 rounded-lg font-bold text-sm cursor-pointer">רענן</button>
+            </div>
+            <table class="w-full text-right border-collapse min-w-[600px]">
+                <thead><tr class="border-b"><th class="p-3">מס' תור</th><th class="p-3">לקוח</th><th class="p-3">מכשיר/תקלה</th><th class="p-3">תאריך ושעה</th><th class="p-3">סטטוס</th></tr></thead>
+                <tbody id="appointments-table-body"></tbody>
+            </table>
+        </div>
+
+        <div id="content-inventory" class="hidden bg-white p-6 rounded-2xl shadow-sm">
+            <div class="flex justify-between items-center gap-4 mb-4">
+                <h2 class="text-2xl font-bold flex items-center gap-2"><i class="fas fa-boxes text-gray-500"></i> ניהול מלאי (לפי נפח וצבע)</h2>
+                <div class="flex gap-2">
+                    <button id="save-all-btn" onclick="saveAllChanges()" class="bg-white border border-gray-300 text-black px-4 py-2 rounded-lg font-bold text-sm cursor-pointer flex items-center gap-2 transition-colors hover:bg-gray-50">
+                        <i class="fas fa-save"></i> שמירת שינויים
+                    </button>
+                    <button onclick="showProductForm()" class="bg-green-600 text-white px-4 py-2 rounded-lg font-bold text-sm cursor-pointer flex items-center gap-2"><i class="fas fa-plus"></i> הוסף מוצר חדש</button>
+                </div>
+            </div>
+
+            <div id="product-form" class="hidden bg-gray-50 p-6 rounded-xl mb-6 border border-gray-200">
+                <h3 id="form-title" class="text-xl font-bold mb-4">הוספת מוצר חדש</h3>
+                <input type="hidden" id="edit-id">
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div><label class="text-sm font-bold">שם המוצר</label><input id="p-name" type="text" placeholder="לדוגמא: iPhone 18 Pro" class="w-full border p-2 rounded mt-1"></div>
+                    <div><label class="text-sm font-bold">מותג</label><input id="p-brand" type="text" placeholder="Apple / Samsung" class="w-full border p-2 rounded mt-1"></div>
+                    <div><label class="text-sm font-bold">קטגוריה</label><select id="p-category" class="w-full border p-2 rounded mt-1 bg-white"><option value="Smartphones">סמארטפונים</option><option value="Accessories">אביזרים</option><option value="ScreenProtectors">מגני מסך</option><option value="BackCovers">כיסוי אחורי</option></select></div>
+                    <div class="grid grid-cols-2 gap-2"><div><label class="text-sm font-bold">מחיר בסיס</label><input id="p-basePrice" type="number" onblur="calcVat()" class="w-full border p-2 rounded mt-1"></div><div><label class="text-sm font-bold">מחיר עם מע"מ</label><input id="p-vatPrice" type="number" class="w-full border p-2 rounded mt-1"></div></div>
+                    <div class="md:col-span-2"><label class="text-sm font-bold">כתובת תמונה ראשית (URL)</label><input id="p-image" type="text" class="w-full border p-2 rounded mt-1"></div>
+                    <div><label class="text-sm font-bold">שם הצבע</label><input id="p-colorName" type="text" class="w-full border p-2 rounded mt-1"></div>
+                    <div><label class="text-sm font-bold">בחירת צבע</label><input id="p-colorHex" type="color" value="#000000" class="w-full border p-2 h-10 rounded mt-1 cursor-pointer"></div>
+                    <div class="md:col-span-2"><label class="text-sm font-bold">נפחי אחסון</label><input id="p-storage" type="text" placeholder="256GB,512GB" class="w-full border p-2 rounded mt-1"></div>
+                </div>
+                <div class="flex gap-2 mt-6">
+                    <button onclick="saveProduct()" class="bg-black text-white py-2 px-6 rounded-lg font-bold cursor-pointer">שמור מוצר</button>
+                    <button onclick="cancelEdit()" class="bg-gray-300 text-black py-2 px-6 rounded-lg font-bold cursor-pointer">בטל</button>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-right border-collapse min-w-[600px]">
+                    <thead><tr class="border-b"><th class="p-3">תמונה</th><th class="p-3">שם המוצר</th><th class="p-3">מחיר</th><th class="p-3">ניהול מלאי (נפח + צבע)</th><th class="p-3">פעולות</th></tr></thead>
+                    <tbody id="products-table-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        let allProductsCache = []; 
+
+        function login() {
+            const pass = document.getElementById('admin-pass').value;
+            if (pass === '1234') {
+                document.getElementById('login-view').classList.add('hidden');
+                document.getElementById('dashboard-view').classList.remove('hidden');
+                fetchData('orders');
+                fetchData('appointments');
+                fetchData('products');
+                setInterval(() => {
+                    fetchData('orders');
+                    fetchData('appointments');
+                }, 10000);
+            } else { document.getElementById('login-error').classList.remove('hidden'); }
+        }
+
+        function switchTab(tabName) {
+            ['orders', 'lab', 'inventory'].forEach(t => {
+                document.getElementById(`content-${t}`).classList.add('hidden');
+                document.getElementById(`tab-${t}`).classList.remove('active');
+            });
+            document.getElementById(`content-${tabName}`).classList.remove('hidden');
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+        }
+
+        async function fetchData(type) {
+            try {
+                const res = await fetch(`${API_URL}/${type}`);
+                const data = await res.json();
+                if (type === 'orders') renderOrders(data);
+                if (type === 'appointments') renderAppointments(data);
+                if (type === 'products') { allProductsCache = data; renderProducts(data); }
+            } catch (error) { console.error('Error:', error); }
+        }
+
+        function renderOrders(orders) {
+            const tbody = document.getElementById('orders-table-body');
+            tbody.innerHTML = orders.length === 0 ? '<tr><td colspan="5" class="text-center p-4 text-gray-400">אין הזמנות</td></tr>' : orders.map(o => `
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="p-3 font-bold">${o.orderNumber}</td><td class="p-3">${o.customerName}</td><td class="p-3">${o.phone}</td><td class="p-3">₪${o.totalAmount.toLocaleString()}</td>
+                    <td class="p-3"><select onchange="updateStatus('orders', '${o._id}', this.value)" class="border rounded p-1 text-sm">
+                        <option ${o.status === 'חדשה' ? 'selected' : ''}>חדשה</option><option ${o.status === 'מוכנה לאיסוף' ? 'selected' : ''}>מוכנה לאיסוף</option><option ${o.status === 'נמסרה' ? 'selected' : ''}>נמסרה</option>
+                    </select></td>
+                </tr>`).join('');
+        }
+
+        function renderAppointments(apps) {
+            const tbody = document.getElementById('appointments-table-body');
+            tbody.innerHTML = apps.length === 0 ? '<tr><td colspan="5" class="text-center p-4 text-gray-400">אין תורים</td></tr>' : apps.map(a => `
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="p-3 font-bold">${a.appointmentNumber}</td><td class="p-3">${a.customerName}<br><span class="text-xs text-gray-500">${a.phone}</span></td><td class="p-3 text-sm">${a.issue}</td>
+                    <td class="p-3 text-sm">${new Date(a.date).toLocaleDateString()} - ${a.timeSlot}</td>
+                    <td class="p-3"><select onchange="updateStatus('appointments', '${a._id}', this.value)" class="border rounded p-1 text-sm">
+                        <option ${a.status === 'נקלט במעבדה' ? 'selected' : ''}>נקלט במעבדה</option><option ${a.status === 'בטיפול' ? 'selected' : ''}>בטיפול</option><option ${a.status === 'מוכן' ? 'selected' : ''}>מוכן</option><option ${a.status === 'נמסר' ? 'selected' : ''}>נמסר</option>
+                    </select></td>
+                </tr>`).join('');
+        }
+
+        function renderProducts(products) {
+            const tbody = document.getElementById('products-table-body');
+            tbody.innerHTML = products.length === 0 ? '<tr><td colspan="5" class="text-center p-4 text-gray-400">אין מוצרים</td></tr>' : products.map(p => `
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="p-3"><img src="${p.colors[0].images[0]}" class="w-12 h-12 object-cover rounded"></td>
+                    <td class="p-3 font-bold">${p.name}</td><td class="p-3">₪${p.basePrice.toLocaleString()}</td>
+                    <td class="p-3">
+                        <div class="flex flex-col gap-2 max-h-48 overflow-y-auto pl-2">
+                            ${p.variants && p.variants.length > 0 ? p.variants.map(v => `
+                                <div class="flex items-center gap-2 justify-end text-xs">
+                                    <span class="w-32 text-left truncate">${v.storageGb} - ${v.colorName}</span>
+                                    <input type="number" data-pid="${p._id}" data-sgb="${v.storageGb}" data-cn="${v.colorName}" value="${v.stock}" min="0" max="999" onchange="updateLocalStock(this)" class="w-14 text-center border border-gray-300 rounded-md font-bold text-black p-1" />
+                                </div>
+                            `).join('') : '<span class="text-xs text-gray-400">אין וריאציות מוגדרות</span>'}
+                        </div>
+                    </td>
+                    <td class="p-3"><div class="flex gap-2 mt-2"><button onclick="editProduct('${p._id}')" class="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 cursor-pointer">ערוך מלא</button><button onclick="deleteProduct('${p._id}')" class="bg-red-500 text-white px-3 py-1 rounded text-xs hover:bg-red-600 cursor-pointer">מחק</button></div></td>
+                </tr>
+            `).join('');
+        }
+
+        function updateLocalStock(input) {
+            const pId = input.dataset.pid; 
+            const sGb = input.dataset.sgb; 
+            const cName = input.dataset.cn;
+            const val = parseInt(input.value) || 0;
+            const p = allProductsCache.find(p => p._id === pId); 
+            if(!p) return;
+            if(!p.variants) p.variants = [];
+            let v = p.variants.find(v => v.storageGb === sGb && v.colorName === cName);
+            if(v) v.stock = val; 
+            else p.variants.push({ storageGb: sGb, colorName: cName, stock: val });
+        }
+
+        async function saveAllChanges() {
+            const btn = document.getElementById('save-all-btn');
+            btn.innerText = 'שומר...'; btn.disabled = true;
+            
+            for(const p of allProductsCache) {
+                const cleanV = p.variants.map(v => ({ storageGb: v.storageGb, colorName: v.colorName, stock: v.stock || 0 }));
+                try { 
+                    await fetch(`${API_URL}/products/${p._id}`, { 
+                        method: 'PUT', 
+                        headers: { 'Content-Type': 'application/json' }, 
+                        body: JSON.stringify({ variants: cleanV }) 
+                    }); 
+                } catch(e) {}
+            }
+            
+            btn.innerText = 'השינויים נשמרו בהצלחה!'; 
+            btn.classList.remove('bg-white', 'text-black'); 
+            btn.classList.add('bg-green-600', 'text-white');
+            
+            await fetchData('products'); // רענון הטבלה מול השרת
+            
+            setTimeout(() => { 
+                btn.innerText = 'שמירת שינויים'; 
+                btn.classList.add('bg-white', 'text-black'); 
+                btn.classList.remove('bg-green-600', 'text-white'); 
+                btn.disabled = false; 
+            }, 2000);
+        }
+
+        function calcVat() { const base = document.getElementById('p-basePrice').value; if(base) document.getElementById('p-vatPrice').value = Math.round(parseInt(base) * 1.17); }
+        function showProductForm(isEdit = false) { document.getElementById('product-form').classList.remove('hidden'); if(!isEdit) { document.getElementById('form-title').innerText = "הוספת מוצר חדש"; document.getElementById('edit-id').value = ""; ['p-name','p-brand','p-basePrice','p-vatPrice','p-image','p-colorName','p-storage'].forEach(id => document.getElementById(id).value = ""); } }
+        function editProduct(id) {
+            const p = allProductsCache.find(prod => prod._id === id); if(!p) return; showProductForm(true);
+            document.getElementById('form-title').innerText = "עריכת מוצר: " + p.name;
+            document.getElementById('edit-id').value = p._id;
+            document.getElementById('p-name').value = p.name;
+            document.getElementById('p-brand').value = p.brand;
+            document.getElementById('p-category').value = p.category;
+            document.getElementById('p-basePrice').value = p.basePrice;
+            document.getElementById('p-vatPrice').value = p.vatPrice;
+            document.getElementById('p-image').value = p.colors[0]?.images[0] || '';
+            document.getElementById('p-colorName').value = p.colors[0]?.name || '';
+            document.getElementById('p-colorHex').value = p.colors[0]?.hex || '#000000';
+            document.getElementById('p-storage').value = p.storage.map(s => s.gb).join(',');
+        }
+        function cancelEdit() { document.getElementById('product-form').classList.add('hidden'); }
+
+        async function saveProduct() {
+            const id = document.getElementById('edit-id').value;
+            const name = document.getElementById('p-name').value;
+            const brand = document.getElementById('p-brand').value;
+            const category = document.getElementById('p-category').value;
+            const basePrice = parseInt(document.getElementById('p-basePrice').value);
+            const vatPrice = parseInt(document.getElementById('p-vatPrice').value);
+            const image = document.getElementById('p-image').value || "https://placehold.co/800x800/F9F9F9/CCCCCC?text=X-MOBILE";
+            const colorName = document.getElementById('p-colorName').value || "ברירת מחדל";
+            const colorHex = document.getElementById('p-colorHex').value;
+            const storageStr = document.getElementById('p-storage').value;
+            if(!name || !brand || !basePrice || !vatPrice) return alert('נא למלא שם, מותג ומחירים');
+            let storageArray = [];
+            if(storageStr.trim() !== "") { storageArray = storageStr.split(',').map((gb, i) => ({ gb: gb.trim(), mod: i * 500 })); } else { storageArray = [{ gb: "Standard", mod: 0 }]; }
+            
+            // יצירת וריאציות אוטומטית למוצר חדש
+            let variantsArr = [];
+            storageArray.forEach(s => {
+                if(colorName !== "מגוון צבעים") {
+                    variantsArr.push({ storageGb: s.gb, colorName: colorName, stock: 10 });
+                }
+            });
+
+            const payload = { name, brand, category, basePrice, vatPrice, rating: 5, storage: storageArray, colors: [{ name: colorName, hex: colorHex, images: [image] }], variants: variantsArr, specs: { "מידע": "מנוהל ידנית" }, reviews: [] };
+            try {
+                let res;
+                if(id) { res = await fetch(`${API_URL}/products/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }); } 
+                else { res = await fetch(`${API_URL}/products`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }); }
+                if(res.ok) { alert(id ? 'המוצר עודכן!' : 'המוצר נוסף!'); cancelEdit(); fetchData('products'); } else { alert('שגיאה בשמירת המוצר'); }
+            } catch (e) { alert('שגיאה בשמירת המוצר'); }
+        }
+
+        async function deleteProduct(id) { if (confirm('למחוק מוצר זה?')) { try { await fetch(`${API_URL}/products/${id}`, { method: 'DELETE' }); fetchData('products'); } catch (e) {} } }
+        async function updateStatus(type, id, status) { try { await fetch(`${API_URL}/${type}/${id}/status`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) }); } catch (error) {} }
+    </script>
+</body>
+</html>
