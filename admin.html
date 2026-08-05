@@ -97,7 +97,7 @@
     </div>
 
     <script>
-        const API_URL = 'http://localhost:3000/api';
+        const API_URL = '/api'; // תיקון קריטי: כעת מערכת הניהול יודעת למשוך נתונים מהענן בכל מכשיר
         let allProductsCache = []; 
 
         function login() {
@@ -173,7 +173,7 @@
                             `).join('') : '<span class="text-xs text-gray-400">אין וריאציות מוגדרות</span>'}
                         </div>
                     </td>
-                    <td class="p-3"><div class="flex gap-2 mt-2"><button onclick="editProduct('${p._id}')" class="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 cursor-pointer">ערוך מלא</button><button onclick="deleteProduct('${p._id}')" class="bg-red-500 text-white px-3 py-1 rounded text-xs hover:bg-red-600 cursor-pointer">מחק</button></div></td>
+                    <td class="p-3"><button onclick="deleteProduct('${p._id}')" class="bg-red-500 text-white px-3 py-1 rounded text-xs hover:bg-red-600 cursor-pointer">מחק</button></td>
                 </tr>
             `).join('');
         }
@@ -210,7 +210,7 @@
             btn.classList.remove('bg-white', 'text-black'); 
             btn.classList.add('bg-green-600', 'text-white');
             
-            await fetchData('products'); // רענון הטבלה מול השרת
+            await fetchData('products');
             
             setTimeout(() => { 
                 btn.innerText = 'שמירת שינויים'; 
@@ -220,22 +220,8 @@
             }, 2000);
         }
 
-        function calcVat() { const base = document.getElementById('p-basePrice').value; if(base) document.getElementById('p-vatPrice').value = Math.round(parseInt(base) * 1.17); }
+        function calcVat() { const b = document.getElementById('p-basePrice').value; if(b) document.getElementById('p-vatPrice').value = Math.round(parseInt(b) * 1.17); }
         function showProductForm(isEdit = false) { document.getElementById('product-form').classList.remove('hidden'); if(!isEdit) { document.getElementById('form-title').innerText = "הוספת מוצר חדש"; document.getElementById('edit-id').value = ""; ['p-name','p-brand','p-basePrice','p-vatPrice','p-image','p-colorName','p-storage'].forEach(id => document.getElementById(id).value = ""); } }
-        function editProduct(id) {
-            const p = allProductsCache.find(prod => prod._id === id); if(!p) return; showProductForm(true);
-            document.getElementById('form-title').innerText = "עריכת מוצר: " + p.name;
-            document.getElementById('edit-id').value = p._id;
-            document.getElementById('p-name').value = p.name;
-            document.getElementById('p-brand').value = p.brand;
-            document.getElementById('p-category').value = p.category;
-            document.getElementById('p-basePrice').value = p.basePrice;
-            document.getElementById('p-vatPrice').value = p.vatPrice;
-            document.getElementById('p-image').value = p.colors[0]?.images[0] || '';
-            document.getElementById('p-colorName').value = p.colors[0]?.name || '';
-            document.getElementById('p-colorHex').value = p.colors[0]?.hex || '#000000';
-            document.getElementById('p-storage').value = p.storage.map(s => s.gb).join(',');
-        }
         function cancelEdit() { document.getElementById('product-form').classList.add('hidden'); }
 
         async function saveProduct() {
@@ -253,7 +239,6 @@
             let storageArray = [];
             if(storageStr.trim() !== "") { storageArray = storageStr.split(',').map((gb, i) => ({ gb: gb.trim(), mod: i * 500 })); } else { storageArray = [{ gb: "Standard", mod: 0 }]; }
             
-            // יצירת וריאציות אוטומטית למוצר חדש
             let variantsArr = [];
             storageArray.forEach(s => {
                 if(colorName !== "מגוון צבעים") {

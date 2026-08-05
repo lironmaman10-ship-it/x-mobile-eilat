@@ -261,7 +261,7 @@
     </nav>
 
     <script>
-        const API_URL = 'http://localhost:3000/api';
+        const API_URL = '/api'; // תיקון קריטי: כעת האתר יודע למשוך נתונים מהענן בכל מכשיר
         let products = []; let cart = []; let currentProduct = null; let currentFilter = 'all'; let currentSort = 'popularity';
 
         document.addEventListener('DOMContentLoaded', async () => { 
